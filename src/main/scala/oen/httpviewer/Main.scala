@@ -1,11 +1,16 @@
 package oen.httpviewer
 
+import java.nio.file.{Files, Paths}
+import java.util.Calendar
+
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.FileIO
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.Future
@@ -20,9 +25,48 @@ object Main extends App {
   implicit val system = ActorSystem("httpviewer", config)
   implicit val materializer = ActorMaterializer()
 
-  val routes: Route = get {
-      getFromBrowseableDirectory("./")
-  }
+  val routes: Route =
+    pathEndOrSingleSlash {
+      getFromResource("index.html")
+    } ~
+    get {
+      path("success") {
+        getFromResource("success.html")
+      } ~
+      path("failed") {
+        getFromResource("failed.html")
+      } ~
+      pathPrefix("list") {
+        getFromBrowseableDirectory("./")
+      }
+    } ~
+    post {
+      path("upload") {
+        withoutSizeLimit {
+          fileUpload("file-to-upload") {
+            case (metadata, byteSource) =>
+
+              val currDateTime = Calendar.getInstance().getTime()
+              val destDir = s"./uploaded/$currDateTime/"
+              val destDirPaths = Paths.get(destDir)
+              Files.createDirectories(destDirPaths)
+
+              val destFile = s"$destDir/${metadata.fileName}"
+              val destFilePath = Paths.get(destFile)
+              val fileSink = FileIO.toPath(destFilePath)
+
+              val uploadedFile = byteSource.runWith(fileSink)
+
+              onSuccess(uploadedFile) { result =>
+                result.wasSuccessful match {
+                  case true => redirect("/success", StatusCodes.SeeOther)
+                  case false => redirect("/failed", StatusCodes.SeeOther)
+                }
+              }
+          }
+        }
+      }
+    }
 
   val bindingFuture: Future[Http.ServerBinding] = Http().bindAndHandle(routes, host, port = port)
 

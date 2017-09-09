@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).
     inThisBuild(List(
       organization := "oen",
       scalaVersion := "2.12.3",
-      version      := "1.0"
+      version      := "1.5"
     )),
     name := "httpviewer",
     libraryDependencies ++= Seq(

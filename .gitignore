@@ -3,3 +3,6 @@
 
 .idea/
 target/
+
+*.sc
+uploaded/
