@@ -1,12 +1,12 @@
-val akkaVersion = "2.5.3"
-val akkaHttpVersion = "10.0.9"
+val akkaVersion = "2.5.26"
+val akkaHttpVersion = "10.1.11"
 
 lazy val root = (project in file(".")).
   settings(
     inThisBuild(List(
       organization := "oen",
-      scalaVersion := "2.12.3",
-      version      := "1.5"
+      scalaVersion := "2.13.1",
+      version      := "1.6"
     )),
     name := "httpviewer",
     libraryDependencies ++= Seq(

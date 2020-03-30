@@ -2,6 +2,7 @@
 *.log
 
 .idea/
+.metals/
 target/
 
 *.sc
